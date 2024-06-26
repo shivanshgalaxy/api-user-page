@@ -11,8 +11,16 @@ router.get("/", async (req, res) => {
     }
 })
 
-router.get("/:id", getUser, (req, res) => {
-    res.send(res.user);
+router.get("/:id", async (req, res) => {
+    const user = await User.findById(req.params.id);
+    try {
+        if(user == null) {
+            throw new Error("User not found")
+        }
+        res.send(user);
+    } catch(err) {
+        res.status(404).json({message: err.message})
+    }
 })
 
 router.post("/", async (req, res) => {
@@ -29,48 +37,41 @@ router.post("/", async (req, res) => {
     }
 })
 
-router.patch("/:id", getUser, async (req,res) => {
+router.patch("/:id", async (req, res) => {
+    const updates = {};
+
     if (req.body.firstName != null) {
-        res.user.firstName = req.body.firstName;
+        updates.firstName = req.body.firstName;
     }
 
     if (req.body.email != null) {
-        res.user.email = req.body.email;
+        updates.email = req.body.email;
     }
 
     try {
-        const updatedUser = await res.user.save()
-        res.json(updatedUser)
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true, runValidators: true }
+        );
 
-    } catch(err) {
-        res.status(400).json({ message: err.message })
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json(updatedUser);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
-})
+});
 
-router.delete("/:id", getUser, async (req, res) => {
+router.delete("/:id", async (req, res) => {
     try {
-        await res.user.deleteOne()
+        await User.findByIdAndDelete(req.params.id)
         res.json( "User deleted");
     } catch(err) {
         res.status(500).json({ message: err.message });
     }
 })
-
-async function getUser(req, res, next) {
-    let user;
-    try {
-        user = await User.findById(req.params.id);
-        if(user == null) {
-            return res.status(404).json({ message: "Cannot find user" });
-        }
-    } catch(err) {
-        return res.status(500).json({ message: err.message });
-    }
-
-    console.log(user);
-    res.user = user;
-    next();
-}
-
 
 module.exports = router;
