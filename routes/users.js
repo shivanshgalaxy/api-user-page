@@ -25,9 +25,11 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
     const user = new User({
-        firstName:req.body.firstName,
+        firstName: req.body.firstName,
         email: req.body.email
     })
+
+    // const userExists = await User.findOne({ email: })
 
     try{
         const newUser = await user.save()
@@ -37,22 +39,23 @@ router.post("/", async (req, res) => {
     }
 })
 
-router.patch("/:id", async (req, res) => {
+router.put("/", async (req, res) => {
     const updates = {};
 
     if (req.body.firstName != null) {
         updates.firstName = req.body.firstName;
-    }
-
-    if (req.body.email != null) {
         updates.email = req.body.email;
     }
 
+    if (req.body.email == null) {
+        throw new Error("Email is required")
+    }
+
     try {
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            { $set: updates },
-            { new: true, runValidators: true }
+        const updatedUser = await User.findOneAndUpdate(
+            { email: req.body.email }, // Find the user by email
+            { $set: updates }, // Set the updates
+            { new: true, runValidators: true } // Return the updated document and run validators
         );
 
         if (!updatedUser) {
