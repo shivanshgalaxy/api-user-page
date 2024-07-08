@@ -41,7 +41,7 @@ jobs:
       - name: Restart MongoDB via SSH
         run: |
           ssh $REMOTE_USER@$REMOTE_HOST "\
-          systemctl restart mongod"; \
+          systemctl restart mongod; \
           cd backend; \
           npm ci; \
           npm run serve; \
