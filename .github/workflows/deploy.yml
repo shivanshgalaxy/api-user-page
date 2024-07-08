@@ -3,7 +3,7 @@ name: AWS continuous deployment
 env:
   REMOTE_USER: ubuntu
   REMOTE_HOST: ec2-13-127-103-213.ap-south-1.compute.amazonaws.com
-  REMOTE_DIR: /srv
+  REMOTE_DIR: ~/backend
   
 on:
   push:
@@ -42,6 +42,7 @@ jobs:
         run: |
           ssh $REMOTE_USER@$REMOTE_HOST "\
           systemctl restart mongod"; \
+          cd backend; \
           npm run serve; \
           "
         env:
