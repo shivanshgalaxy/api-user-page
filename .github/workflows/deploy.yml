@@ -19,9 +19,7 @@ jobs:
       - uses: actions/setup-node@master
         with:
           node-version: 22
-      - run: npm ci
       
-
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -45,6 +43,7 @@ jobs:
           ssh $REMOTE_USER@$REMOTE_HOST "\
           systemctl restart mongod"; \
           cd backend; \
+          npm ci; \
           npm run serve; \
           "
         env:
