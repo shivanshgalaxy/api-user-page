@@ -25,9 +25,10 @@ router.get("/:id", async (req, res) => {
 
 router.get("/:offset/:noOfUsers", async(req, res) => {
     const { offset, noOfUsers } = req.params;
+    const length = await User.countDocuments({});
     try {
         const users = await User.find().skip(offset).limit(noOfUsers);
-        res.json(users);
+        res.json({length, users});
     } catch(err) {
         res.status(500).json({ message: err.message });
     }
