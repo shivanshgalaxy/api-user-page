@@ -23,6 +23,16 @@ router.get("/:id", async (req, res) => {
     }
 })
 
+router.get("/:offset/:noOfUsers", async(req, res) => {
+    const { offset, noOfUsers } = req.params;
+    try {
+        const users = await User.find().skip(offset).limit(noOfUsers);
+        res.json(users);
+    } catch(err) {
+        res.status(500).json({ message: err.message });
+    }
+})
+
 router.post("/", async (req, res) => {
     const user = new User({
         firstName: req.body.firstName,
