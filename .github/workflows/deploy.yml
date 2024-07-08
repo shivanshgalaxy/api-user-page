@@ -1,0 +1,47 @@
+name: AWS continuous deployment
+
+env:
+  REMOTE_USER: ubuntu
+  REMOTE_HOST: ec2-13-127-103-213.ap-south-1.compute.amazonaws.com
+  
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+        
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: 22
+      - run: npm ci
+      
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.GITKEY }}
+
+      - name: Add remote host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H -t rsa $REMOTE_HOST  >> ~/.ssh/known_hosts
+          
+      - name: Copy files via SCP
+        run: |
+          scp -r ./* $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR
+        env:
+          SSH_KEY: ${{ secrets.GITKEY }}
+
+      - name: Restart MongoDB via SSH
+        run: |
+          ssh $REMOTE_USER@$REMOTE_HOST "\
+          systemctl restart mongod"; \
+          npm run serve; \
+          "
+        env:
+          SSH_KEY: ${{ secrets.GITKEY }}
